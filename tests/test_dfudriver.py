@@ -17,7 +17,7 @@ from labgrid.resource.common import NetworkResource, Resource
 )
 def test_download_options(options, flags):
     driver = DFUDriver.__new__(DFUDriver)
-    driver.tool = "dfu-util"
+    driver.tool = ["dfu-util"]
     driver.dfu = resource = Mock(path="1-2.3", command_prefix=[])
     resource.wrap_command.side_effect = lambda command: Resource.wrap_command(resource, command)
 
@@ -45,9 +45,10 @@ def test_download_options(options, flags):
         ("list", (), ["--list"], {"print_on_silent_log": True}),
     ],
 )
-def test_remote_command(method, args, suffix, kwargs):
+@pytest.mark.parametrize("tool", [["dfu-util"], ["podman", "exec", "tools", "dfu-util"]])
+def test_remote_command(method, args, suffix, kwargs, tool):
     driver = DFUDriver.__new__(DFUDriver)
-    driver.tool = "dfu-util"
+    driver.tool = tool
     driver.dfu = resource = Mock(path="1-2.3", command_prefix=["ssh", "example.org", "--"])
     resource.wrap_command.side_effect = lambda command: NetworkResource.wrap_command(resource, command)
 
@@ -58,5 +59,23 @@ def test_remote_command(method, args, suffix, kwargs):
         getattr(DFUDriver, method).__wrapped__(driver, *args)
 
     run.assert_called_once_with(
-        ["ssh", "example.org", "--", "dfu-util", "-p", "1-2.3", *suffix], **kwargs
+        ["ssh", "example.org", "--", *tool, "-p", "1-2.3", *suffix], **kwargs
+    )
+
+
+def test_download_with_configured_command():
+    driver = DFUDriver.__new__(DFUDriver)
+    driver.tool = ["env", "DFU_TRACE=1", "dfu-util"]
+    driver.dfu = resource = Mock(path="1-2.3")
+    resource.wrap_command.side_effect = lambda command: Resource.wrap_command(resource, command)
+
+    with patch("labgrid.driver.dfudriver.ManagedFile") as managed, patch(
+        "labgrid.driver.dfudriver.processwrapper.check_output"
+    ) as run:
+        managed.return_value.get_remote_path.return_value = "/tmp/firmware.bin"
+        DFUDriver.download.__wrapped__(driver, "firmware", "/tmp/firmware.bin")
+
+    run.assert_called_once_with(
+        ["env", "DFU_TRACE=1", "dfu-util", "-p", "1-2.3", "--alt", "firmware", "--download", "/tmp/firmware.bin"],
+        print_on_silent_log=True,
     )

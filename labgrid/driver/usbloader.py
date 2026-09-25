@@ -23,9 +23,9 @@ class MXSUSBDriver(Driver, BootstrapProtocol):
         super().__attrs_post_init__()
         # FIXME make sure we always have an environment or config
         if self.target.env:
-            self.tool = self.target.env.config.get_tool('mxs-usb-loader')
+            self.tool = self.target.env.config.get_tool_command('mxs-usb-loader')
         else:
-            self.tool = 'mxs-usb-loader'
+            self.tool = ['mxs-usb-loader']
 
     def on_activate(self):
         pass
@@ -42,7 +42,7 @@ class MXSUSBDriver(Driver, BootstrapProtocol):
         mf.sync_to_resource()
 
         processwrapper.check_output(
-            self.loader.command_prefix + [self.tool, "0", mf.get_remote_path()],
+            self.loader.command_prefix + self.tool + ["0", mf.get_remote_path()],
             print_on_silent_log=True
         )
 
@@ -61,9 +61,9 @@ class IMXUSBDriver(Driver, BootstrapProtocol):
         super().__attrs_post_init__()
         # FIXME make sure we always have an environment or config
         if self.target.env:
-            self.tool = self.target.env.config.get_tool('imx-usb-loader')
+            self.tool = self.target.env.config.get_tool_command('imx-usb-loader')
         else:
-            self.tool = 'imx-usb-loader'
+            self.tool = ['imx-usb-loader']
 
     def on_activate(self):
         pass
@@ -79,7 +79,7 @@ class IMXUSBDriver(Driver, BootstrapProtocol):
         mf = ManagedFile(filename, self.loader)
         mf.sync_to_resource()
 
-        command = [self.tool, "-p", str(self.loader.path)]
+        command = [*self.tool, "-p", str(self.loader.path)]
         if self.verify:
             command.append("-c")
         command.append(mf.get_remote_path())
@@ -104,9 +104,9 @@ class RKUSBDriver(Driver, BootstrapProtocol):
         super().__attrs_post_init__()
         # FIXME make sure we always have an environment or config
         if self.target.env:
-            self.tool = self.target.env.config.get_tool('rk-usb-loader')
+            self.tool = self.target.env.config.get_tool_command('rk-usb-loader')
         else:
-            self.tool = 'rk-usb-loader'
+            self.tool = ['rk-usb-loader']
 
     def on_activate(self):
         pass
@@ -127,7 +127,7 @@ class RKUSBDriver(Driver, BootstrapProtocol):
             try:
                 processwrapper.check_output(
                     self.loader.command_prefix +
-                    [self.tool, 'db', mf.get_remote_path()],
+                    [*self.tool, 'db', mf.get_remote_path()],
                     print_on_silent_log=True
                 )
                 break
@@ -145,7 +145,7 @@ class RKUSBDriver(Driver, BootstrapProtocol):
             try:
                 processwrapper.check_output(
                     self.loader.command_prefix +
-                    [self.tool, 'wl', '0x40', mf.get_remote_path()],
+                    [*self.tool, 'wl', '0x40', mf.get_remote_path()],
                     print_on_silent_log=True
                 )
                 break
@@ -168,9 +168,9 @@ class UUUDriver(Driver, BootstrapProtocol):
         super().__attrs_post_init__()
         # FIXME make sure we always have an environment or config
         if self.target.env:
-            self.tool = self.target.env.config.get_tool('uuu-loader')
+            self.tool = self.target.env.config.get_tool_command('uuu-loader')
         else:
-            self.tool = 'uuu-loader'
+            self.tool = ['uuu-loader']
 
     def on_activate(self):
         pass
@@ -189,7 +189,7 @@ class UUUDriver(Driver, BootstrapProtocol):
         cmd = ['-b', self.script] if self.script else []
 
         processwrapper.check_output(
-            self.loader.command_prefix + [self.tool] + cmd + [mf.get_remote_path()],
+            self.loader.command_prefix + self.tool + cmd + [mf.get_remote_path()],
             print_on_silent_log=True
         )
 
@@ -213,9 +213,9 @@ class BDIMXUSBDriver(Driver, BootstrapProtocol):
         super().__attrs_post_init__()
         # FIXME make sure we always have an environment or config
         if self.target.env:
-            self.tool = self.target.env.config.get_tool('imx_usb')
+            self.tool = self.target.env.config.get_tool_command('imx_usb')
         else:
-            self.tool = 'imx_usb'
+            self.tool = ['imx_usb']
 
     def on_activate(self):
         pass
@@ -231,7 +231,7 @@ class BDIMXUSBDriver(Driver, BootstrapProtocol):
 
         processwrapper.check_output(
             self.loader.command_prefix + [
-                self.tool,
+                *self.tool,
                 f"--bus={self.loader.busnum}",
                 f"--device={self.loader.devnum}",
                 mf.get_remote_path(),

@@ -24,12 +24,12 @@ class DediprogFlashDriver(Driver):
     def __attrs_post_init__(self):
         super().__attrs_post_init__()
         if self.target.env:
-            self.tool = self.target.env.config.get_tool("dpcmd")
+            self.tool = self.target.env.config.get_tool_command("dpcmd")
         else:
-            self.tool = "dpcmd"
+            self.tool = ["dpcmd"]
 
     def _get_dediprog_prefix(self):
-        return self.flasher.command_prefix + [self.tool]
+        return self.flasher.command_prefix + self.tool
 
     def on_activate(self):
         pass

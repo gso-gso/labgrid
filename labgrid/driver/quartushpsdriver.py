@@ -27,11 +27,11 @@ class QuartusHPSDriver(Driver):
 
         # FIXME make sure we always have an environment or config
         if self.target.env:
-            self.tool = self.target.env.config.get_tool("quartus_hps")
-            self.jtag_tool = self.target.env.config.get_tool("jtagconfig")
+            self.tool = self.target.env.config.get_tool_command("quartus_hps")
+            self.jtag_tool = self.target.env.config.get_tool_command("jtagconfig")
         else:
-            self.tool = "quartus_hps"
-            self.jtag_tool = "jtagconfig"
+            self.tool = ["quartus_hps"]
+            self.jtag_tool = ["jtagconfig"]
 
     def _get_cable_number(self):
         """
@@ -41,7 +41,7 @@ class QuartusHPSDriver(Driver):
         """
         timeout = Timeout(10.0)
         while not timeout.expired:
-            cmd = self.interface.command_prefix + [self.jtag_tool]
+            cmd = self.interface.command_prefix + self.jtag_tool
             jtagconfig_process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
             stdout, _ = jtagconfig_process.communicate()
 
@@ -74,7 +74,7 @@ class QuartusHPSDriver(Driver):
         assert isinstance(address, int)
 
         cable_number = self._get_cable_number()
-        cmd = self.interface.command_prefix + [self.tool]
+        cmd = self.interface.command_prefix + self.tool
         cmd += [
             f"--cable={cable_number}",
             f"--addr=0x{address:X}",
@@ -87,7 +87,7 @@ class QuartusHPSDriver(Driver):
     def erase(self, address=None, size=None):
 
         cable_number = self._get_cable_number()
-        cmd = self.interface.command_prefix + [self.tool]
+        cmd = self.interface.command_prefix + self.tool
         cmd += [
             f"--cable={cable_number}",
             "--operation=E",

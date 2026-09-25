@@ -26,9 +26,9 @@ class USBSDWire3Driver(Driver):
     def __attrs_post_init__(self):
         super().__attrs_post_init__()
         if self.target.env:
-            self.tool = self.target.env.config.get_tool("sdwire")
+            self.tool = self.target.env.config.get_tool_command("sdwire")
         else:
-            self.tool = "sdwire"
+            self.tool = ["sdwire"]
         if self.mux.control_serial is None:
             raise ExecutionError("USBSDWire3Driver requires 'control_serial' to be set in the resource")
         self.control_serial = self.match_control_serial()
@@ -39,7 +39,7 @@ class USBSDWire3Driver(Driver):
         if not mode.lower() in ["dut", "host"]:
             raise ExecutionError(f"Setting mode '{mode}' not supported by USBSDWire3Driver")
         cmd = self.mux.command_prefix + [
-            self.tool,
+            *self.tool,
             "switch",
             "-s",
             self.control_serial,
@@ -48,7 +48,7 @@ class USBSDWire3Driver(Driver):
         processwrapper.check_output(cmd)
 
     def match_control_serial(self):
-        cmd = self.mux.command_prefix + [self.tool, "list"]
+        cmd = self.mux.command_prefix + self.tool + ["list"]
         proc = subprocess.run(cmd, stdout=subprocess.PIPE, check=True)
         output = proc.stdout.strip().decode()
         for line in output.splitlines():
@@ -60,7 +60,7 @@ class USBSDWire3Driver(Driver):
     @step(title="sdmux_get")
     def get_mode(self):
         cmd = self.mux.command_prefix + [
-            self.tool,
+            *self.tool,
             "state",
             "-s",
             self.control_serial,

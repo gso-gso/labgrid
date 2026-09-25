@@ -113,7 +113,7 @@ class QEMUDriver(ConsoleExpectMixin, Driver, PowerProtocol, ConsoleProtocol):
         self._forwarded_ports = {}
 
     def get_qemu_version(self, qemu_bin):
-        p = subprocess.run([qemu_bin, "-version"], stdout=subprocess.PIPE, encoding="utf-8")
+        p = subprocess.run([*qemu_bin, "-version"], stdout=subprocess.PIPE, encoding="utf-8")
         if p.returncode != 0:
             raise ExecutionError(f"Unable to get QEMU version. QEMU exited with: {p.returncode}")
 
@@ -130,11 +130,8 @@ class QEMUDriver(ConsoleExpectMixin, Driver, PowerProtocol, ConsoleProtocol):
         """
         cmd = []
 
-        qemu_bin = self.target.env.config.get_tool(self.qemu_bin)
-        if qemu_bin is None:
-            raise KeyError(
-                "QEMU Binary Path not configured in tools configuration key")
-        cmd = [qemu_bin]
+        qemu_bin = self.target.env.config.get_tool_command(self.qemu_bin)
+        cmd = qemu_bin.copy()
 
         qemu_version = self.get_qemu_version(qemu_bin)
 

@@ -134,3 +134,27 @@ def test_tool_no_explicit_tool(tmpdir):
     c = Config(str(p))
 
     assert c.get_tool("testtool") == "testtool"
+
+
+def test_tool_command(tmpdir):
+    binary = tmpdir.join("tool with spaces")
+    binary.write("content")
+    config = tmpdir.join("config.yaml")
+    config.write('tools:\n  testtool: "\\\"tool with spaces\\\" --label \'a b\'"\n')
+    c = Config(str(config))
+
+    assert c.get_tool("testtool") == '"tool with spaces" --label \'a b\''
+    assert c.get_tool_command("testtool") == [str(binary), "--label", "a b"]
+    assert c.get_tool_command("missing") == ["missing"]
+
+    c.data["tools"]["testtool"] = "tool with spaces"
+    assert c.get_tool_command("testtool") == [str(binary)]
+
+
+def test_tool_command_invalid(tmpdir):
+    from labgrid.exceptions import InvalidConfigError
+
+    config = tmpdir.join("config.yaml")
+    config.write("tools:\n  testtool: '\"unterminated'\n")
+    with pytest.raises(InvalidConfigError, match="Invalid command"):
+        Config(str(config)).get_tool_command("testtool")

@@ -18,13 +18,13 @@ class DFUDriver(Driver):
         super().__attrs_post_init__()
         # FIXME make sure we always have an environment or config
         if self.target.env:
-            self.tool = self.target.env.config.get_tool("dfu-util")
+            self.tool = self.target.env.config.get_tool_command("dfu-util")
         else:
-            self.tool = "dfu-util"
+            self.tool = ["dfu-util"]
 
     def _get_dfu_prefix(self):
         return [
-            self.tool,
+            *self.tool,
             "-p",
             self.dfu.path,
         ]

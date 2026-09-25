@@ -70,13 +70,13 @@ class SiSPMPowerDriver(Driver, PowerResetMixin, PowerProtocol):
     def __attrs_post_init__(self):
         super().__attrs_post_init__()
         if self.target.env:
-            self.tool = self.target.env.config.get_tool('sispmctl')
+            self.tool = self.target.env.config.get_tool_command('sispmctl')
         else:
-            self.tool = 'sispmctl'
+            self.tool = ['sispmctl']
 
     def _get_sispmctl_prefix(self):
         return self.port.command_prefix + [
-            self.tool,
+            *self.tool,
             "-U", f"{self.port.busnum:03d}:{self.port.devnum:03d}",
         ]
 
@@ -280,15 +280,15 @@ class YKUSHPowerDriver(Driver, PowerResetMixin, PowerProtocol):
     def __attrs_post_init__(self):
         super().__attrs_post_init__()
         if self.target.env:
-            self.tool = self.target.env.config.get_tool('ykushcmd') or 'ykushcmd'
+            self.tool = self.target.env.config.get_tool_command('ykushcmd')
         else:
-            self.tool = 'ykushcmd'
+            self.tool = ['ykushcmd']
 
     def on_activate(self):
         # Search for the model of the YKUSH device
         for model in ["ykush", "ykushxs", "ykush3"]:
             cmd = self.port.command_prefix + [
-                self.tool,
+                *self.tool,
                 model,
                 "-l"
             ]
@@ -303,7 +303,7 @@ class YKUSHPowerDriver(Driver, PowerResetMixin, PowerProtocol):
     @step()
     def on(self):
         cmd = [
-            self.tool,
+            *self.tool,
             self.model,
             "-s", f"{self.port.serial}",
             "-u", f"{self.port.index}"
@@ -314,7 +314,7 @@ class YKUSHPowerDriver(Driver, PowerResetMixin, PowerProtocol):
     @step()
     def off(self):
         cmd = [
-            self.tool,
+            *self.tool,
             self.model,
             "-s", f"{self.port.serial}",
             "-d", f"{self.port.index}"
@@ -331,7 +331,7 @@ class YKUSHPowerDriver(Driver, PowerResetMixin, PowerProtocol):
     @Driver.check_active
     def get(self):
         cmd = [
-            self.tool,
+            *self.tool,
             self.model,
             "-s", f"{self.port.serial}",
             "-g", f"{self.port.index}"
@@ -363,13 +363,13 @@ class USBPowerDriver(Driver, PowerResetMixin, PowerProtocol):
     def __attrs_post_init__(self):
         super().__attrs_post_init__()
         if self.target.env:
-            self.tool = self.target.env.config.get_tool('uhubctl')
+            self.tool = self.target.env.config.get_tool_command('uhubctl')
         else:
-            self.tool = 'uhubctl'
+            self.tool = ['uhubctl']
 
     def _switch(self, cmd):
         cmd = self.hub.command_prefix + [
-            self.tool,
+            *self.tool,
             "-l", self.hub.path,
             "-p", str(self.hub.index),
             "-r", "100", # use 100 retries for now
@@ -397,7 +397,7 @@ class USBPowerDriver(Driver, PowerResetMixin, PowerProtocol):
     @Driver.check_active
     def get(self):
         cmd = self.hub.command_prefix + [
-            self.tool,
+            *self.tool,
             "-l", self.hub.path,
             "-p", str(self.hub.index),
         ]

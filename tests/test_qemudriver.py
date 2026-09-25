@@ -1,4 +1,5 @@
 import subprocess
+from unittest.mock import Mock
 
 import pytest
 
@@ -79,6 +80,16 @@ def qemu_qmp_mock(mocker):
 
 def test_qemu_instance(qemu_driver):
     assert (isinstance(qemu_driver, QEMUDriver))
+
+
+def test_qemu_configured_command(qemu_target, qemu_env, monkeypatch):
+    qemu_env.config.data["tools"]["qemu"] = "env QEMU_TRACE=1 qemu-system-arm"
+    run = Mock(return_value=Mock(returncode=0, stdout="QEMU emulator version 4.2.1"))
+    monkeypatch.setattr(subprocess, "run", run)
+    driver = QEMUDriver(qemu_target, "qemu", qemu_bin="qemu", memory="512M")
+    args = driver.get_qemu_base_args()
+    assert args[:3] == ["env", "QEMU_TRACE=1", "qemu-system-arm"]
+    assert run.call_args.args[0] == ["env", "QEMU_TRACE=1", "qemu-system-arm", "-version"]
 
 def test_qemu_base_args_optional(qemu_target, qemu_mock):
     q = QEMUDriver(

@@ -4,6 +4,7 @@ This class encapsulates access functions to the environment configuration
 
 """
 import os
+import shlex
 import warnings
 from yaml import YAMLError
 import attr
@@ -110,6 +111,24 @@ class Config:
             return resolved
 
         return path
+
+    def get_tool_command(self, tool):
+        """Return a configured tool and its arguments as an argv list."""
+        command = self.data.get('tools', {}).get(tool, tool)
+        # Preserve paths containing spaces which were valid with get_tool().
+        resolved = self.resolve_path(str(command))
+        if os.path.exists(resolved):
+            return [resolved]
+        try:
+            args = shlex.split(str(command))
+        except ValueError as e:
+            raise InvalidConfigError(f"Invalid command for tool '{tool}': {e}") from e
+        if not args:
+            raise InvalidConfigError(f"Empty command for tool '{tool}'")
+        resolved = self.resolve_path(args[0])
+        if os.path.exists(resolved):
+            args[0] = resolved
+        return args
 
     def get_image_path(self, kind):
         """Retrieve an entry from the images subkey

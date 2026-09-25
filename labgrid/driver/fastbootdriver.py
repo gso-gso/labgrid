@@ -36,9 +36,9 @@ class AndroidFastbootDriver(Driver):
         super().__attrs_post_init__()
         # FIXME make sure we always have an environment or config
         if self.target.env:
-            self.tool = self.target.env.config.get_tool('fastboot')
+            self.tool = self.target.env.config.get_tool_command('fastboot')
         else:
-            self.tool = 'fastboot'
+            self.tool = ['fastboot']
 
     def _get_fastboot_prefix(self):
         if isinstance(self.fastboot, (AndroidUSBFastboot, RemoteAndroidUSBFastboot)):
@@ -46,7 +46,7 @@ class AndroidFastbootDriver(Driver):
         else:
             option = f"{self.fastboot.protocol}:{self.fastboot.address}:{self.fastboot.port}"
 
-        prefix = self.fastboot.command_prefix + [ self.tool, "-s", option ]
+        prefix = self.fastboot.command_prefix + [ *self.tool, "-s", option ]
 
         if self.sparse_size is not None:
             prefix += ["-S", self.sparse_size]

@@ -37,11 +37,11 @@ class OpenOCDDriver(Driver, BootstrapProtocol):
 
         # FIXME make sure we always have an environment or config
         if self.target.env:
-            self.tool = self.target.env.config.get_tool("openocd")
+            self.tool = self.target.env.config.get_tool_command("openocd")
             self.config = self.target.env.config.resolve_path_str_or_list(self.config)
             self.search = self.target.env.config.resolve_path_str_or_list(self.search)
         else:
-            self.tool = "openocd"
+            self.tool = ["openocd"]
             if isinstance(self.config, str):
                 self.config = [self.config]
             if isinstance(self.search, str):
@@ -52,7 +52,7 @@ class OpenOCDDriver(Driver, BootstrapProtocol):
         return ["--command", f'adapter usb location "{self.interface.path}"']
 
     def _run_commands(self, commands: list):
-        cmd = [self.tool]
+        cmd = self.tool.copy()
         cmd += chain.from_iterable(("--search", path) for path in self.search)
         cmd += self._get_usb_path_cmd()
         cmd += [

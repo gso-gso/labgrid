@@ -33,17 +33,17 @@ class ADBDriver(CommandMixin, Driver, CommandProtocol, FileTransferProtocol, Res
     def __attrs_post_init__(self):
         super().__attrs_post_init__()
         if self.target.env:
-            self.tool = self.target.env.config.get_tool("adb")
+            self.tool = self.target.env.config.get_tool_command("adb")
         else:
-            self.tool = "adb"
+            self.tool = ["adb"]
 
     def on_activate(self):
         if isinstance(self.device, USBADBDevice):
-            self._base_command = [self.tool, "-s", self.device.serialno]
+            self._base_command = [*self.tool, "-s", self.device.serialno]
 
         elif isinstance(self.device, RemoteUSBADBDevice):
             self._host, self._port = proxymanager.get_host_and_port(self.device)
-            self._base_command = [self.tool, "-H", self._host, "-P", str(self._port), "-s", self.device.serialno]
+            self._base_command = [*self.tool, "-H", self._host, "-P", str(self._port), "-s", self.device.serialno]
 
         elif isinstance(self.device, NetworkADBDevice):
             self._host, self._port = proxymanager.get_host_and_port(self.device)
@@ -54,26 +54,26 @@ class ADBDriver(CommandMixin, Driver, CommandProtocol, FileTransferProtocol, Res
             # always disconnect first.
             # TODO: Replace subprocess.run() with process wrapper once it supports timeouts.
             subprocess.run(
-                [self.tool, "disconnect", f"{self._host}:{str(self._port)}"],
+                [*self.tool, "disconnect", f"{self._host}:{str(self._port)}"],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
                 timeout=ADB_TIMEOUT,
                 check=False,
             )
             subprocess.run(
-                [self.tool, "connect", f"{self._host}:{str(self._port)}"],
+                [*self.tool, "connect", f"{self._host}:{str(self._port)}"],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
                 timeout=ADB_TIMEOUT,
                 check=True,
             )  # Connect adb client to TCP adb device
-            self._base_command = [self.tool, "-s", f"{self._host}:{str(self._port)}"]
+            self._base_command = [*self.tool, "-s", f"{self._host}:{str(self._port)}"]
 
     def on_deactivate(self):
         if isinstance(self.device, NetworkADBDevice):
             # Clean up TCP adb device once the driver is deactivated
             subprocess.run(
-                [self.tool, "disconnect", f"{self._host}:{str(self._port)}"],
+                [*self.tool, "disconnect", f"{self._host}:{str(self._port)}"],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
                 timeout=ADB_TIMEOUT,

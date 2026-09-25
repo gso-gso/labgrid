@@ -30,11 +30,11 @@ class SigrokCommon(Driver):
         super().__attrs_post_init__()
         # FIXME make sure we always have an environment or config
         if self.target.env:
-            self.tool = self.target.env.config.get_tool(
+            self.tool = self.target.env.config.get_tool_command(
                 'sigrok-cli'
-            ) or 'sigrok-cli'
+            )
         else:
-            self.tool = 'sigrok-cli'
+            self.tool = ['sigrok-cli']
         self._running = False
 
     def _create_tmpdir(self):
@@ -80,7 +80,7 @@ class SigrokCommon(Driver):
         self._delete_tmpdir()
 
     def _get_sigrok_prefix(self):
-        prefix = [self.tool]
+        prefix = self.tool.copy()
         if isinstance(self.sigrok, (NetworkSigrokUSBDevice, SigrokUSBDevice)):
             prefix += ["-d", f"{self.sigrok.driver}:conn={self.sigrok.busnum}.{self.sigrok.devnum}"]
         elif isinstance(self.sigrok, (NetworkSigrokUSBSerialDevice, SigrokUSBSerialDevice)):
@@ -130,7 +130,7 @@ class SigrokCommon(Driver):
     @Driver.check_active
     @step(title='call', args=['args'])
     def _call(self, *args):
-        combined = self.sigrok.command_prefix + [self.tool]
+        combined = self.sigrok.command_prefix + self.tool
         if self.sigrok.channels:
             combined += ["-C", self.sigrok.channels]
         if self.sigrok.channel_group:

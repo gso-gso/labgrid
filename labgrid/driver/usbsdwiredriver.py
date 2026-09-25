@@ -23,9 +23,9 @@ class USBSDWireDriver(Driver):
     def __attrs_post_init__(self):
         super().__attrs_post_init__()
         if self.target.env:
-            self.tool = self.target.env.config.get_tool("sd-mux-ctrl")
+            self.tool = self.target.env.config.get_tool_command("sd-mux-ctrl")
         else:
-            self.tool = "sd-mux-ctrl"
+            self.tool = ["sd-mux-ctrl"]
 
     @Driver.check_active
     @step(title="sdmux_set", args=["mode"])
@@ -33,7 +33,7 @@ class USBSDWireDriver(Driver):
         if not mode.lower() in ["dut", "host"]:
             raise ExecutionError(f"Setting mode '{mode}' not supported by USBSDWireDriver")
         cmd = self.mux.command_prefix + [
-            self.tool,
+            *self.tool,
             "--dut" if mode.lower() == "dut" else "--ts",
             "-e",
             self.mux.control_serial,
@@ -44,7 +44,7 @@ class USBSDWireDriver(Driver):
     @step(title="sdmux_get")
     def get_mode(self):
         cmd = self.mux.command_prefix + [
-            self.tool,
+            *self.tool,
             "-e",
             self.mux.control_serial,
             "-u",

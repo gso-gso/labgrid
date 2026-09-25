@@ -78,7 +78,12 @@ Two configured images, one for the root filesystem, one for the bootloader:
 
 TOOLS
 -----
-The ``tools:`` top key provides paths to binaries such as fastboot.
+The ``tools:`` top key provides paths to binaries such as fastboot, or commands
+with arguments. For example, ``dfu-util: 'podman exec tools dfu-util'`` runs
+dfu-util inside a container. Quote a path containing spaces within the command,
+for example ``dfu-util: '"/opt/my tools/dfu-util" --verbose'``. Commands for
+``ssh``, ``scp``, ``sshfs`` and ``rsync`` must be single binary paths; SSHDriver
+passes the SSH path to ``scp -S``.
 
 TOOLS KEYS
 ~~~~~~~~~~

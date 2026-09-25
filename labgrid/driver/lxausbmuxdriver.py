@@ -21,9 +21,9 @@ class LXAUSBMuxDriver(Driver):
     def __attrs_post_init__(self):
         super().__attrs_post_init__()
         if self.target.env:
-            self.tool = self.target.env.config.get_tool("usbmuxctl")
+            self.tool = self.target.env.config.get_tool_command("usbmuxctl")
         else:
-            self.tool = "usbmuxctl"
+            self.tool = ["usbmuxctl"]
 
     @Driver.check_active
     @step(title="usbmux_set", args=["links"])
@@ -41,7 +41,7 @@ class LXAUSBMuxDriver(Driver):
                 raise ExecutionError(f"Link '{link}' not supported by LXAUSBMuxDriver")
 
         cmd = self.mux.command_prefix + [
-            self.tool,
+            *self.tool,
             "--path",
             self.mux.path,
             "connect",

@@ -25,13 +25,13 @@ class FlashromDriver(Driver, BootstrapProtocol):
     def __attrs_post_init__(self):
         super().__attrs_post_init__()
         if self.target.env:
-            self.tool = self.target.env.config.get_tool("flashrom")
+            self.tool = self.target.env.config.get_tool_command("flashrom")
         else:
-            self.tool = "flashrom"
+            self.tool = ["flashrom"]
         self.logger.debug("Tool %s", self.tool)
 
     def _get_flashrom_prefix(self):
-        return self.flashrom_resource.command_prefix + [self.tool]
+        return self.flashrom_resource.command_prefix + self.tool
 
     def on_activate(self):
         pass
